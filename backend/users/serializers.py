@@ -5,7 +5,9 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from django.core.files.base import ContentFile
 
+from api.models import Recipe
 from users.models import User, Subscription
+from api.serializers import RecipeShortSerializer
 
 
 class Base64ImageField(serializers.ImageField):
@@ -75,13 +77,61 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор подписки."""
+    is_subscribed = serializers.SerializerMethodField()
+    # в модели Subscription и вернуть True.
+    recipes = serializers.SerializerMethodField()  # список рецетов
+    recipes_count = serializers.SerializerMethodField()  # количество рецптов
+    avatar = ...  # Должно подгрузиться автоматом при наличии у пользователя.
 
     class Meta:
-        fields = ('user', 'author', )
-        model = Subscription
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Subscription.objects.all(),
-                fields=('user', 'author')
-            )
-        ]
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+            'avatar',
+        )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request is not None and request.user.is_authenticated:
+            return Subscription.objects.filter(
+                user=request.user, author=obj).exists()
+        return False
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        if request.query_params.get('recipes_limit'):
+            recipes_limit = int(request.query_params.get('recipes_limit'))
+            queryset = Recipe.objects.filter(author=obj.author)[:recipes_limit]
+        queryset = Recipe.objects.filter(author=obj.author)
+        serializer = RecipeShortSerializer(queryset, read_only=True, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return obj.author.recipes.count()
+
+
+
+
+
+
+
+
+# class SubscriptionSerializer(serializers.ModelSerializer):
+#     """Сериализатор подписки."""
+
+#     class Meta:
+#         fields = ('user', 'author', )
+#         model = Subscription
+#         validators = [
+#             UniqueTogetherValidator(
+#                 queryset=Subscription.objects.all(),
+#                 fields=('user', 'author')
+#             )
+#         ]

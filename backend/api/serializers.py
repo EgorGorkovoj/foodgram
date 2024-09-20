@@ -109,6 +109,14 @@ class RecipeSerializer(serializers.ModelSerializer):
                                             )
 
 
+class RecipeShortSerializer(serializers.ModelSerializer):
+    """Укороченный сериализатор рецептов."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов."""
 

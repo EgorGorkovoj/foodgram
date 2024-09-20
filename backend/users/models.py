@@ -62,7 +62,7 @@ class Subscription(models.Model):
     )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        verbose_name='Отслеживаемы автор рецепта', related_name='following',
+        verbose_name='Отслеживаемый автор рецепта', related_name='following',
     )
 
     class Meta:
@@ -74,4 +74,4 @@ class Subscription(models.Model):
         ]
 
     def __str__(self):
-        return self.user
+        return f'{self.user} подписан на {self.author}'

@@ -1,5 +1,6 @@
 from djoser import views
 
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -34,3 +35,9 @@ class UserViewSet(views.UserViewSet):
         user = request.user
         user.avatar = image
         user.save()
+
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    """Вьюсет модели Subscription."""
+    queryset = User.objects.all()
+    
