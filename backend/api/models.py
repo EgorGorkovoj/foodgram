@@ -1,0 +1,158 @@
+from django.db import models
+from django.core.validators import MinValueValidator
+
+from users.models import User
+
+
+# Возможно понадобится валидация поля slug через RegexValidate.
+class Tag(models.Model):
+    """Модель Tag."""
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=32,
+    )
+    slug = models.SlugField(
+        verbose_name='Уникальный слаг',
+        max_length=32,
+    )
+
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.name
+
+
+class Ingredient(models.Model):
+    """Модель Ingredient."""
+    # CHOICES = (
+    #     ('кг', 'килограмм'),
+    #     ('гр.', 'грамм'),
+    #     ('шт.', 'штуки'),
+    #     ('ст.л.', 'столовая ложка'),
+    #     ('ч.л.', 'чайная ложка'),
+    #     ('л', 'литры'),
+    #     ('мл', 'миллилитры'),
+    # )
+
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=128,
+    )
+    measurement_unit = models.CharField(
+        verbose_name='Единица измерения',
+        max_length=64,
+        # choices=CHOICES,
+    )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
+
+
+class Recipe(models.Model):
+    """Модель Recipe."""
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор публикации'
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        through='TagRecipe',
+        verbose_name='Тег',
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes',
+        through='RecipeIngredient',
+        verbose_name='Ингредиенты'
+    )
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=256,
+    )
+    text = models.TextField(
+        verbose_name='Описание',
+    )
+    image = models.ImageField(
+        verbose_name='Картинка',
+        upload_to='recipes'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления в минутах',
+        validators=[MinValueValidator(1)]
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
+
+
+class TagRecipe(models.Model):
+    """
+    Промежуточная модель связи ManyToMany
+    для моделей Recipe и Tag.
+    """
+    recipe = models.ForeignKey(
+        Recipe, related_name='tagrecipe', on_delete=models.CASCADE
+    )
+    tag = models.ForeignKey(
+        Tag, related_name='tagrecipe',
+        on_delete=models.SET_DEFAULT,
+        default=None,
+    )
+
+
+class RecipeIngredient(models.Model):
+    """
+    Промежуточная модель связи ManyToMany
+    для моделей Recipe и Ingredient.
+    """
+    ingredient = models.ForeignKey(
+        Ingredient, related_name='recipeingredients', on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe, related_name='recipeingredients', on_delete=models.CASCADE
+    )
+    amount = models.DecimalField(
+        verbose_name='Количество в рецепте',
+        max_digits=5,
+        decimal_places=2,
+    )
+
+
+class Favorites(models.Model):
+    """Модель избранных рецептов."""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='favorites',
+    )
+    recipe = models.ForeignKey(
+        Recipe, related_name='favorites', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+
+    def __str__(self):
+        return f'{self.user}{self.recipe}'
+
+
+class ShoppingList(models.Model):
+    """Модель списка покупок."""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='shoppinglist',
+    )
+    recipe = models.ForeignKey(
+        Recipe, related_name='shoppinglist', on_delete=models.CASCADE
+    )
