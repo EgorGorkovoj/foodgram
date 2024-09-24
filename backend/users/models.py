@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 # Возможно понадобится валидация поля username через RegexValidate.
-class User(AbstractUser):
+class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
 
     USERNAME_FIELD = 'email'
@@ -57,11 +57,11 @@ class User(AbstractUser):
 class Subscription(models.Model):
     """Класс Subscription."""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        CustomUser, on_delete=models.CASCADE,
         verbose_name='Подписчик', related_name='follower'
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        CustomUser, on_delete=models.CASCADE,
         verbose_name='Отслеживаемый автор рецепта', related_name='following',
     )
 

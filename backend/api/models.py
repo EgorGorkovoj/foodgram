@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from users.models import User
+from users.models import CustomUser
 
 
 # Возможно понадобится валидация поля slug через RegexValidate.
@@ -26,15 +26,6 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель Ingredient."""
-    # CHOICES = (
-    #     ('кг', 'килограмм'),
-    #     ('гр.', 'грамм'),
-    #     ('шт.', 'штуки'),
-    #     ('ст.л.', 'столовая ложка'),
-    #     ('ч.л.', 'чайная ложка'),
-    #     ('л', 'литры'),
-    #     ('мл', 'миллилитры'),
-    # )
 
     name = models.CharField(
         verbose_name='Название',
@@ -43,7 +34,6 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=64,
-        # choices=CHOICES,
     )
 
     class Meta:
@@ -57,7 +47,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Модель Recipe."""
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор публикации'
@@ -134,7 +124,7 @@ class RecipeIngredient(models.Model):
 class Favorites(models.Model):
     """Модель избранных рецептов."""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='favorites',
+        CustomUser, on_delete=models.CASCADE, related_name='favorites',
     )
     recipe = models.ForeignKey(
         Recipe, related_name='favorites', on_delete=models.CASCADE
@@ -151,7 +141,7 @@ class Favorites(models.Model):
 class ShoppingList(models.Model):
     """Модель списка покупок."""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='shoppinglist',
+        CustomUser, on_delete=models.CASCADE, related_name='shoppinglist',
     )
     recipe = models.ForeignKey(
         Recipe, related_name='shoppinglist', on_delete=models.CASCADE
