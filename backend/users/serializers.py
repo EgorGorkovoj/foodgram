@@ -89,7 +89,6 @@ class UserSerializer(djoser_serializer.UserSerializer):
 class SubscriptionListSerializer(serializers.ModelSerializer):
     """Сериализатор подписки."""
     is_subscribed = serializers.SerializerMethodField()
-    # в модели Subscription и вернуть True.
     recipes = serializers.SerializerMethodField()  # список рецетов
     recipes_count = serializers.SerializerMethodField()  # количество рецптов
     # avatar = ...  # Должно подгрузиться автоматом при наличии у пользователя.
