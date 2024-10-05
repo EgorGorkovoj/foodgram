@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 
 from djoser import views as djoser_viewset
@@ -43,6 +44,9 @@ class UserViewSet(djoser_viewset.UserViewSet):
                 f'/media/users/{avatar.name}'
             )
             return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
+        file_path = request.user.avatar.path
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
         request.user.avatar.delete()
         request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -121,6 +121,19 @@ class RecipeIngredient(models.Model):
     )
 
 
+class ShortLinkRecipe(models.Model):
+    """Модель короткой ссылки рецепта."""
+    recipe = models.OneToOneField(
+        Recipe, on_delete=models.CASCADE, related_name='shortlink',
+    )
+    original_link = models.URLField()
+    short_link = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name='Короткая ссылка',
+    )
+
+
 class Favorites(models.Model):
     """Модель избранных рецептов."""
     user = models.ForeignKey(
