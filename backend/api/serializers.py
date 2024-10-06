@@ -226,3 +226,8 @@ class ShoppingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = '__all__'
+
+    def to_representation(self, instance):
+        recipe = self.validated_data.get('recipe')
+        serializer = ShortRecipeSerializer(recipe)
+        return serializer.data
