@@ -157,8 +157,8 @@ DJOSER = {
         'current_user': 'users.serializers.UserSerializer',
     },
     'PERMISSIONS': {
-        'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.AllowAny'],  # 'rest_framework.permissions.AllowAny'
+        'user': ['rest_framework.permissions.AllowAny'],  # 'djoser.permissions.CurrentUserOrAdminOrReadOnly'
     }
 }
 

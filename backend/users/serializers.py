@@ -15,8 +15,6 @@ class Base64ImageField(serializers.ImageField):
     """Кастомный класс для поля image."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            # ...начинаем декодировать изображение из base64.
-            # Сначала нужно разделить строку на части.
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
@@ -29,20 +27,6 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
-
-# class PostUserSerializer(djoser_serializer.UserSerializer):
-#     """Сериализатор для создания пользователя."""
-
-#     class Meta:
-#         fields = (
-#             'id',
-#             'email',
-#             'username',
-#             'first_name',
-#             'last_name',
-#         )
-#         model = CustomUser
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -87,9 +71,8 @@ class UserSerializer(djoser_serializer.UserSerializer):
 class SubscriptionListSerializer(serializers.ModelSerializer):
     """Сериализатор подписки."""
     is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()  # список рецетов
-    recipes_count = serializers.SerializerMethodField()  # количество рецптов
-    # avatar = ...  # Должно подгрузиться автоматом при наличии у пользователя.
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser

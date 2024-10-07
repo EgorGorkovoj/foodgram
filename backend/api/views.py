@@ -1,17 +1,14 @@
 import os
-import pdb
 import hashlib
 
 from django.conf import settings
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponseNotFound, HttpResponse, FileResponse
+from django.http import HttpResponseNotFound, HttpResponse
 
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
@@ -22,7 +19,8 @@ from api.serializers import (TagSerializer, RecipeSerializer,
                              ShoppingListSerializer)
 from api.pagination import CustomPagination
 from api.permissions import (IsAuthorOrReadOnlyPermissions,
-                             IsAdminOrReadOnlyPermissions)              
+                             IsAdminOrReadOnlyPermissions)
+from api.filters import RecipeFilter, IngredientFilter
 
 import io
 from reportlab.pdfgen import canvas
@@ -30,16 +28,15 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch, cm
-from reportlab.lib.colors import Color
 from reportlab.lib.utils import ImageReader
 
 
 def redirect_original_url(request, short_link):
     """Функция для получения рецепта из короткой ссылки."""
     try:
-        short_url = request.build_absolute_uri(
-            f'/s/{short_link}')
-        url = ShortLinkRecipe.objects.get(short_link=short_url)
+        # short_url = request.build_absolute_uri(
+        #     f'/s/{short_link}')
+        url = ShortLinkRecipe.objects.get(short_link=short_link)
         url.save()
         return redirect(url.original_link)
     except ShortLinkRecipe.DoesNotExist:
@@ -60,8 +57,10 @@ class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthorOrReadOnlyPermissions,)
+    filter_backends = (DjangoFilterBackend, )
     pagination_class = None
-    http_method_names = ['get',]
+    http_method_names = ['get', ]
+    filter_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -72,16 +71,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'patch', 'delete',]
-    # filterset_fields = (
-    #     'is_favorited', 'is_in_shopping_cart',
-    #     'author', 'tags',
-    # )
+    filter_class = RecipeFilter
 
     @action(
         ['get', ], detail=True, url_path='get-link',
         permission_classes=[AllowAny, ]
     )
-    def get_short_link(self, request, pk=None):
+    def get_short_link(self, request, pk=None):  # Короткая ссылка не такая
         # pdb.set_trace()
         original_link = self.request.build_absolute_uri()
         list_link = original_link.split('/')
@@ -89,13 +85,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe_link = "/".join(list_link)
         recipe = get_object_or_404(Recipe, pk=pk)
         hash_value = hashlib.md5(recipe_link.encode()).hexdigest()[:3]
-        short_url = self.request.build_absolute_uri(
-            f'/s/{hash_value}'
-        )
+        # short_url = self.request.build_absolute_uri(
+        #     f'/s/{hash_value}'
+        # )
         ShortLinkRecipe.objects.get_or_create(
-            recipe=recipe, short_link=short_url, original_link=recipe_link
+            recipe=recipe, short_link=hash_value, original_link=recipe_link
         )
-        return Response({'short-url': short_url}, status=status.HTTP_200_OK)
+        return Response(
+            {'short-link': self.request.build_absolute_uri(f'/s/{hash_value}')},
+            status=status.HTTP_200_OK
+        )
 
     @action(
         ['post', 'delete', ], detail=True, url_path='favorite',
@@ -166,7 +165,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def get_shopping_cart(self, request):
-        # pdb.set_trace()
         ingredients = RecipeIngredient.objects.filter(
             recipe__shoppinglist__user=request.user
         ).values(

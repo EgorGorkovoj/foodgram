@@ -1,13 +1,13 @@
-import pdb
 import base64
-
+import pdb
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
 
-from api.models import (Tag, Ingredient, Recipe, TagRecipe, ShortLinkRecipe,
-                        RecipeIngredient, Favorites, ShoppingList)
+from api.models import (Tag, Ingredient, Recipe, RecipeIngredient,
+                        Favorites, ShoppingList)
 from users.serializers import UserSerializer, ShortRecipeSerializer
 
 
@@ -135,6 +135,31 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
+    def validate_tags(self, data):
+        pdb.set_trace()
+        tags_list = []
+        for tag in data:
+            if tag in tags_list:
+                raise serializers.ValidationError(
+                    'Теги не могут повторяться!'
+                )
+            tags_list.append(tag)
+        return data
+
+    def validate_ingredients(self, data):
+        # pdb.set_trace()
+        ingredients = len(data)
+        if ingredients == 0:
+            raise serializers.ValidationError(
+                'Рецепт не может быть без ингредиентов.'
+            )
+        return data
+        # # Проверка количества каждого ингредиента
+        # for ingredient in ingredients:
+        #     amount = ingredient.get('amount')
+        #     if amount <= 0:
+        #         raise serializers.ValidationError(f"Количество {ingredient.get('name')} должно быть больше 0.")
+
     def create(self, validated_data):
         request = self.context.get('request')
         author = request.user
@@ -190,21 +215,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).data
 
 
-# class ShortLinkRecipeSerializer(serializers.ModelSerializer):
-#     """Сериализатор избранных рецептов."""
-#     short_link = serializers.URLField()
-
-#     class Meta:
-#         model = ShortLinkRecipe
-#         fields = ('short-link', )
-
-#     def create(self, validated_data):
-#         request = self.context.get('request')
-#         original_link = validated_data.pop('original_link')
-#         short_link = validated_data.pop('short_url')
-#         recipe = validated_data.pop('recipe')
-#         ShortLinkRecipe.objects.get_or_create(short_link=short_link, recipe=recipe, original_link=original_link)
-#         return
+# def validate_ingredients(value):
+#     pdb.set_trace()
+#     print(value)
+#     if len(value) == 0:
+#         raise serializers.ValidationError(
+#             'Рецепт не может быть без ингредиентов!'
+#         )
+#     return value
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

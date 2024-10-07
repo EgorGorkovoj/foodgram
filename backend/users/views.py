@@ -23,7 +23,10 @@ class UserViewSet(djoser_viewset.UserViewSet):
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'put', 'delete', ]
 
-    @action(detail=False, methods=['get'],)
+    @action(
+        detail=False, methods=['get'],
+        permission_classes=[IsAuthenticated]
+    )
     def me(self, request):
         user = CustomUser.objects.get(pk=self.request.user.id)
         serializer = UserSerializer(user)
@@ -76,7 +79,8 @@ class UserViewSet(djoser_viewset.UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe_or_unsubscribe(self, request, id):
-        author = CustomUser.objects.get(pk=id)
+        # author = CustomUser.objects.get(pk=id)
+        author = get_object_or_404(CustomUser, pk=id)
         user = request.user
         if request.method == 'POST':
             serializer = SubscriptionSerializer(

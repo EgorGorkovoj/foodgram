@@ -118,6 +118,7 @@ class RecipeIngredient(models.Model):
         verbose_name='Количество в рецепте',
         max_digits=5,
         decimal_places=2,
+        validators=[MinValueValidator(1)],
     )
 
 
