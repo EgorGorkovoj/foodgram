@@ -148,11 +148,16 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, data):
         # pdb.set_trace()
-        ingredients = len(data)
-        if ingredients == 0:
+        if len(data) < 1:
             raise serializers.ValidationError(
                 'Рецепт не может быть без ингредиентов.'
             )
+        for ingredient in data:
+            check = Ingredient.objects.filter(id=ingredient.id).exists()
+            if not check:
+                raise serializers.ValidationError(
+                    'Такого ингредиента не существует!'
+                )
         return data
         # # Проверка количества каждого ингредиента
         # for ingredient in ingredients:
