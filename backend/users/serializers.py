@@ -1,24 +1,11 @@
-import base64
-
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-
-from django.core.files.base import ContentFile
 
 from djoser import serializers as djoser_serializer
 
 from api.models import Recipe
+from core.serializers import Base64ImageField
 from users.models import CustomUser, Subscription
-
-
-class Base64ImageField(serializers.ImageField):
-    """Кастомный класс для поля image."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -57,15 +44,12 @@ class UserSerializer(djoser_serializer.UserSerializer):
         model = CustomUser
 
     def get_is_subscribed(self, obj):
-        """
-        Метод для вычисления поля сериализатора is_subscribed.
-        Возращает True, если пользователь подписан на автора рецета.
-        """
         request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            return Subscription.objects.filter(
-                user=request.user, author=obj).exists()
-        return False
+        if request is None or request.user.is_anonymous:
+            return False
+        return Subscription.objects.filter(
+            user=request.user, author=obj
+        ).exists()
 
 
 class SubscriptionListSerializer(serializers.ModelSerializer):

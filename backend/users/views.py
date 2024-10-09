@@ -3,13 +3,11 @@ from django.shortcuts import get_object_or_404
 
 from djoser import views as djoser_viewset
 
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.permissions import IsAuthorOrReadOnlyPermissions
 from api.pagination import CustomPagination
 from users.models import CustomUser, Subscription
 from users.serializers import (AvatarSerializer, UserSerializer,
@@ -79,7 +77,6 @@ class UserViewSet(djoser_viewset.UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe_or_unsubscribe(self, request, id):
-        # author = CustomUser.objects.get(pk=id)
         author = get_object_or_404(CustomUser, pk=id)
         user = request.user
         if request.method == 'POST':

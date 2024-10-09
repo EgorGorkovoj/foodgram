@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator
 from users.models import CustomUser
 
 
-# Возможно понадобится валидация поля slug через RegexValidate.
 class Tag(models.Model):
     """Модель Tag."""
     name = models.CharField(

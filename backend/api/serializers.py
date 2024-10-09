@@ -1,24 +1,11 @@
-import base64
-import pdb
-from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 
 from api.models import (Tag, Ingredient, Recipe, RecipeIngredient,
                         Favorites, ShoppingList)
+from core.serializers import Base64ImageField
 from users.serializers import UserSerializer, ShortRecipeSerializer
-
-
-class Base64ImageField(serializers.ImageField):
-    """Кастомный класс для поля image."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -61,6 +48,11 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class GetRicepeSerializer(serializers.ModelSerializer):
+    """
+    Вспомогательный сериализатор рецептов.
+    В основном используется для правильного отображения рецептов
+    при GET запросах.
+    """
 
     tags = TagSerializer(many=True, read_only=True)
     author = serializers.SerializerMethodField()
@@ -87,6 +79,7 @@ class GetRicepeSerializer(serializers.ModelSerializer):
         )
 
     def get_author(self, obj):
+        """Метод для получения автора рецепта."""
         return UserSerializer(obj.author, many=False).data
 
     def get_is_favorited(self, obj):
@@ -136,7 +129,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def validate_tags(self, data):
-        pdb.set_trace()
+        if len(data) < 1:
+            raise serializers.ValidationError(
+                'Поле должно содержать хотя бы 1 тег!'
+            )
         tags_list = []
         for tag in data:
             if tag in tags_list:
@@ -147,23 +143,27 @@ class RecipeSerializer(serializers.ModelSerializer):
         return data
 
     def validate_ingredients(self, data):
-        # pdb.set_trace()
         if len(data) < 1:
             raise serializers.ValidationError(
                 'Рецепт не может быть без ингредиентов.'
             )
+        ingredient_list = []
         for ingredient in data:
-            check = Ingredient.objects.filter(id=ingredient.id).exists()
+            check = Ingredient.objects.filter(id=ingredient['id']).exists()
             if not check:
                 raise serializers.ValidationError(
                     'Такого ингредиента не существует!'
                 )
+            if ingredient['amount'] == 0:
+                raise serializers.ValidationError(
+                    'Количество ингредиента должно быть больше 0!'
+                )
+            if ingredient['id'] in ingredient_list:
+                raise serializers.ValidationError(
+                    'Ингредиенты не могут повторяться!'
+                )
+            ingredient_list.append(ingredient['id'])
         return data
-        # # Проверка количества каждого ингредиента
-        # for ingredient in ingredients:
-        #     amount = ingredient.get('amount')
-        #     if amount <= 0:
-        #         raise serializers.ValidationError(f"Количество {ingredient.get('name')} должно быть больше 0.")
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -189,6 +189,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        if 'ingredients' not in self.initial_data \
+                or 'tags' not in self.initial_data:
+            raise serializers.ValidationError(
+                'Поле ingredients обязательно!'
+            )
         ingredients = validated_data.pop('recipeingredients')
         tags = validated_data.pop('tags')
         instance.tags.clear()
@@ -197,8 +202,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
         list_ingredients = []
         for ingredient in ingredients:
-            current_ingredient = get_object_or_404(
-                Ingredient, id=ingredient.get('id'),
+            current_ingredient = Ingredient.objects.get(
+                id=ingredient.get('id')
             )
             amount = ingredient.get('amount')
             list_ingredients.append(
@@ -218,16 +223,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             instance,
             context={'request': request}
         ).data
-
-
-# def validate_ingredients(value):
-#     pdb.set_trace()
-#     print(value)
-#     if len(value) == 0:
-#         raise serializers.ValidationError(
-#             'Рецепт не может быть без ингредиентов!'
-#         )
-#     return value
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

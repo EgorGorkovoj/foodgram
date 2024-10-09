@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-from api.views import redirect_original_url
+from core.views import redirect_original_url
 
 urlpatterns = [
     path('admin/', admin.site.urls),

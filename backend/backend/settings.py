@@ -37,16 +37,17 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    'djoser',
     'rest_framework',
-    'django_filters',
     'rest_framework.authtoken',
+    'djoser',
+    'django_filters',
     'debug_toolbar',
 ]
 
 LOCAL_APPS = [
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
+    'core.apps.CoreConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -142,12 +143,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'users.CustomUser'
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ]
 }
 
 DJOSER = {
@@ -157,12 +161,9 @@ DJOSER = {
         'current_user': 'users.serializers.UserSerializer',
     },
     'PERMISSIONS': {
-        'user_list': ['rest_framework.permissions.AllowAny'],  # 'rest_framework.permissions.AllowAny'
-        'user': ['rest_framework.permissions.AllowAny'],  # 'djoser.permissions.CurrentUserOrAdminOrReadOnly'
+        'user': ['rest_framework.permissions.AllowAny'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
     }
 }
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -3,7 +3,6 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 
 
-# Возможно понадобится валидация поля username через RegexValidate.
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
 
