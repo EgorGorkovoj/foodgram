@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from api.models import (Tag, Ingredient, Recipe, RecipeIngredient,
                         Favorites, ShoppingList)
-from core.serializers import Base64ImageField
-from users.serializers import UserSerializer, ShortRecipeSerializer
+from core.serializers import Base64ImageField, ShortRecipeSerializer
+from users.serializers import UserSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -26,7 +26,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """
-    Сериализатор промежуточной модели RecipeIngredientSerializer.
+    Сериализатор промежуточной модели RecipeIngredient.
     Необходим для правильного отображения поля ингредиентов в модели Recipe.
     """
     id = serializers.IntegerField()
@@ -37,7 +37,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'amount',)
 
     def to_representation(self, instance):
-        """Метод для сериализации объекта модели."""
         ingredient = instance.ingredient
         serializers = IngredientSerializer(
             ingredient

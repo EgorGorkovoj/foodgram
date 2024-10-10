@@ -3,17 +3,8 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from djoser import serializers as djoser_serializer
 
-from api.models import Recipe
-from core.serializers import Base64ImageField
+from core.serializers import Base64ImageField, ShortRecipeSerializer
 from users.models import CustomUser, Subscription
-
-
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Укороченный сериализатор рецептов."""
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -44,6 +35,10 @@ class UserSerializer(djoser_serializer.UserSerializer):
         model = CustomUser
 
     def get_is_subscribed(self, obj):
+        """
+        Метод для вычисления поля сериализатора is_subscribed.
+        Возращает True, если пользователь подписан на автора.
+        """
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
@@ -73,6 +68,10 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        """
+        Метод для вычисления поля сериализатора is_subscribed.
+        Возращает True, если пользователь подписан на автора.
+        """
         request = self.context.get('request')
         if request is not None or request.user.is_authenticated:
             return Subscription.objects.filter(
@@ -80,6 +79,12 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
         return False
 
     def get_recipes(self, obj):
+        """
+        Метод для вычисления поля сериализатора recipes.
+        Возвращает сериализованные рецепты автора на которого подписались.
+        Дополнительно сделана возможность фильтрации
+        по параметру 'recipes_limit'.
+        """
         request = self.context.get('request')
         recipes_limit = None
         if request:
@@ -91,6 +96,7 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
                                      context={'request': request}).data
 
     def get_recipes_count(self, obj):
+        """Метод возвращающий количество рецптов."""
         return obj.recipes.count()
 
 
@@ -108,7 +114,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
-        """Метод для сериализации объекта модели."""
         request = self.context.get('request')
         author = self.validated_data.get('author')
         serializer = SubscriptionListSerializer(

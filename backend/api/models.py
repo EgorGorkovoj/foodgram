@@ -101,6 +101,13 @@ class TagRecipe(models.Model):
         default=None,
     )
 
+    class Meta:
+        verbose_name = 'Тег рецепта'
+        verbose_name_plural = 'Теги рецептов'
+
+    def __str__(self):
+        return f'{self.recipe} - {self.tag}'
+
 
 class RecipeIngredient(models.Model):
     """
@@ -113,12 +120,17 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe, related_name='recipeingredients', on_delete=models.CASCADE
     )
-    amount = models.DecimalField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество в рецепте',
-        max_digits=5,
-        decimal_places=2,
         validators=[MinValueValidator(1)],
     )
+
+    class Meta:
+        verbose_name = 'Ингредиенты рецепта'
+        verbose_name_plural = 'Ингредиенты рецептов'
+
+    def __str__(self):
+        return f'{self.recipe} - {self.ingredient}'
 
 
 class ShortLinkRecipe(models.Model):
@@ -132,6 +144,13 @@ class ShortLinkRecipe(models.Model):
         unique=True,
         verbose_name='Короткая ссылка',
     )
+
+    class Meta:
+        verbose_name = 'Короткая ссылка'
+        verbose_name_plural = 'Короткие ссылки'
+
+    def __str__(self):
+        return f'{self.recipe} - {self.short_link} - {self.original_link}'
 
 
 class Favorites(models.Model):
@@ -148,7 +167,7 @@ class Favorites(models.Model):
         verbose_name_plural = 'Избранные'
 
     def __str__(self):
-        return f'{self.user}{self.recipe}'
+        return f'{self.user} добавил {self.recipe} в избранное.'
 
 
 class ShoppingList(models.Model):
@@ -159,3 +178,10 @@ class ShoppingList(models.Model):
     recipe = models.ForeignKey(
         Recipe, related_name='shoppinglist', on_delete=models.CASCADE
     )
+
+    class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+
+    def __str__(self):
+        return f'{self.user} добавил {self.recipe} в список покупок.'

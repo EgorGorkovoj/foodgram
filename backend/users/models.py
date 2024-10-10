@@ -71,6 +71,8 @@ class Subscription(models.Model):
                 name='unique_user_author'
             )
         ]
+        verbose_name = 'Подписчик'
+        verbose_name_plural = 'Подписчики'
 
     def __str__(self):
         return f'{self.user} подписан на {self.author}'

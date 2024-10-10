@@ -31,8 +31,13 @@ STATUS_RESPONSE = {
 }
 
 
-def redirect_original_url(request, short_link):
-    """Функция для получения рецепта из короткой ссылки."""
+def redirect_original_url(short_link):
+    """
+    Функция для получения рецепта из короткой ссылки.
+    Параметры функции:
+    1) short_link - набор зашифрованных символов,
+       который приходит из запроса <str:short_link>.
+    """
     try:
         url = ShortLinkRecipe.objects.get(short_link=short_link)
         url.save()
@@ -43,6 +48,15 @@ def redirect_original_url(request, short_link):
 
 def create_delete_shop_favorites_or_shopping_cart(
         request, pk, model, class_serializer):
+    """
+    Вспомогательная функция для создания и удаления рецептов.
+    Вызывается в методах RecipeViewSet.
+    Параметры функции:
+    1) request - объект запроса, хранящий данные запроса;
+    2) pk - id рецепта из url запроса;
+    3) model - модель, в данной функции FavoFavorites или ShoppingList;
+    4) class_serializer - кастомные сериализаторы.
+    """
     user = request.user
     recipe = get_object_or_404(Recipe, pk=pk)
     if request.method == 'POST':
@@ -80,6 +94,14 @@ def create_delete_shop_favorites_or_shopping_cart(
 
 
 def create_shop_cart(shopping_list):
+    """
+    Вспомогательная функция для формирования списка покупок
+    в виде pfd файла.
+    Вызывается в методe get_shopping_cart RecipeViewSet.
+    Параметры функции:
+    1) shopping_list - сформированный и отфильтрованный список
+       ингредиентов с их количеством.
+    """
     gabriola_path = os.path.join(
         settings.BASE_DIR, 'api', 'templates', 'gabriola.ttf'
     )
