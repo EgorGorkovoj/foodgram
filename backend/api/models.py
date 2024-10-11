@@ -138,7 +138,7 @@ class ShortLinkRecipe(models.Model):
     recipe = models.OneToOneField(
         Recipe, on_delete=models.CASCADE, related_name='shortlink',
     )
-    original_link = models.URLField()
+    original_link = models.URLField(verbose_name='Ссылка на рецепт')
     short_link = models.CharField(
         max_length=255,
         unique=True,

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from api.models import Tag, Ingredient, Recipe, RecipeIngredient
+from api.models import (Tag, Ingredient, Recipe, RecipeIngredient,
+                        Favorites, ShoppingList, ShortLinkRecipe)
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -26,9 +27,9 @@ class ApiIngredientAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
 
 
-class IngredientsInRecipeAdmin(admin.ModelAdmin):
+class ApiIngredientsInRecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',  # id
+        'id',
         'ingredient',
         'recipe',
         'amount'
@@ -36,10 +37,10 @@ class IngredientsInRecipeAdmin(admin.ModelAdmin):
     search_fields = ('recipe__name', 'ingredient__name')
 
 
-class RecipeAdmin(admin.ModelAdmin):
+class ApiRecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline, )
     list_display = (
-        'pk',
+        'id',
         'name',
         'author',
         'favorites_amount',
@@ -50,42 +51,57 @@ class RecipeAdmin(admin.ModelAdmin):
     )
     list_filter = ('tags__name',)
     readonly_fields = ('favorites_amount',)
+    list_display_links = ('name',)
 
     def favorites_amount(self, obj):
         return obj.favorites.count()
 
 
+class ApiFavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'user',
+        'recipe',
+    )
+    search_fields = (
+        'user__username',
+        'user__email',
+        'recipe__name',
+    )
+
+
+class ApiShoppingListAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'user',
+        'recipe',
+    )
+    search_fields = (
+        'user__username',
+        'user__email',
+        'recipe__name',
+    )
+
+
+class ApiShortLinkRecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'recipe',
+        'short_link',
+        'original_link',
+    )
+    search_fields = (
+        'recipe__name',
+    )
+
+
 admin.site.register(Tag, ApiTagAdmin)
 admin.site.register(Ingredient, ApiIngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Recipe, ApiRecipeAdmin)
 admin.site.register(
     RecipeIngredient,
-    IngredientsInRecipeAdmin
+    ApiIngredientsInRecipeAdmin
 )
-# admin.site.register(Favorites, FavoriteAdmin)
-# admin.site.register(ShoppingCart, ShoppingCartAdmin)
-
-# class FavoriteAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'pk',
-#         'user',
-#         'recipe'
-#     )
-#     search_fields = (
-#         'user__username',
-#         'user__email',
-#         'recipe__name'
-#     )
-
-
-# class ShoppingCartAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'pk',
-#         'user',
-#         'recipe'
-#     )
-#     search_fields = (
-#         'user__username',
-#         'user__email',
-#         'recipe__name'
-#     )
+admin.site.register(Favorites, ApiFavoriteAdmin)
+admin.site.register(ShoppingList, ApiShoppingListAdmin)
+admin.site.register(ShortLinkRecipe, ApiShortLinkRecipeAdmin)
