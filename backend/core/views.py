@@ -31,7 +31,7 @@ STATUS_RESPONSE = {
 }
 
 
-def redirect_original_url(short_link):
+def redirect_original_url(request, short_link):
     """
     Функция для получения рецепта из короткой ссылки.
     Параметры функции:
@@ -40,8 +40,11 @@ def redirect_original_url(short_link):
     """
     try:
         url = ShortLinkRecipe.objects.get(short_link=short_link)
-        url.save()
-        return redirect(url.original_link)
+        original_link = url.original_link
+        list_link = original_link.split('/')
+        list_link.pop(-4)
+        recipe_link = "/".join(list_link)
+        return redirect(recipe_link)
     except ShortLinkRecipe.DoesNotExist:
         return HttpResponseNotFound("Короткая ссылка не найдена!")
 
@@ -135,10 +138,10 @@ def create_shop_cart(shopping_list):
     can.drawString(x_title, y_title, title)
     can.setFont('Gabriola', 16)
     y = (letter[1] - 0.5 * inch) - 4.8 * cm
-    x = (letter[0] - can.stringWidth(
-        " ".join(shopping_list), 'Gabriola', 18)) - 5 * cm
     # Отображаем список покупок.
     for item in shopping_list:
+        x = (letter[0] - can.stringWidth(
+            f' {item} ', 'Gabriola', 18)) - 8.5 * cm
         can.drawString(x, y, item)
         y -= 0.2 * inch
     can.save()

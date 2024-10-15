@@ -1,7 +1,9 @@
 import hashlib
+import pdb
 
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -57,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ['get', ], detail=True, url_path='get-link',
         permission_classes=[AllowAny, ]
     )
-    def get_short_link(self, pk=None):
+    def get_short_link(self, request, pk=None):
         """Метод для формирования и получения короткой ссылки."""
         original_link = self.request.build_absolute_uri()
         list_link = original_link.split('/')
@@ -66,7 +68,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         hash_value = hashlib.md5(recipe_link.encode()).hexdigest()[:3]
         ShortLinkRecipe.objects.get_or_create(
-            recipe=recipe, short_link=hash_value, original_link=recipe_link
+            recipe=recipe,
+            defaults={'short_link': hash_value, 'original_link': recipe_link}
         )
         return Response({
             'short-link': self.request.build_absolute_uri(
