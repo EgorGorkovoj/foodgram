@@ -29,7 +29,7 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
     permission_classes = (IsAdminOrReadOnlyPermissions,)
     pagination_class = None
-    http_method_names = ['get',]
+    http_method_names = ['get', ]
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -48,7 +48,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnlyPermissions,)
-    http_method_names = ['get', 'post', 'patch', 'delete',]
+    http_method_names = ['get', 'post', 'patch', 'delete', ]
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     pagination_class = CustomPagination
