@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.pagination import CustomPagination
-from users.models import CustomUser, Subscription
+from users.models import User, Subscription
 from users.serializers import (AvatarSerializer, UserSerializer,
                                SubscriptionListSerializer,
                                SubscriptionSerializer)
@@ -17,7 +17,7 @@ from users.serializers import (AvatarSerializer, UserSerializer,
 
 class UserViewSet(djoser_viewset.UserViewSet):
     """""Вьюсет из djoser."""
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'put', 'delete', ]
 
@@ -26,7 +26,7 @@ class UserViewSet(djoser_viewset.UserViewSet):
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
-        user = CustomUser.objects.get(pk=self.request.user.id)
+        user = User.objects.get(pk=self.request.user.id)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -57,7 +57,7 @@ class UserViewSet(djoser_viewset.UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def get_subscriptions(self, request):
-        user = get_object_or_404(CustomUser, pk=request.user.id)
+        user = get_object_or_404(User, pk=request.user.id)
         user_sub = user.follower.all()
         following = [sub.author for sub in user_sub]
         pagination = CustomPagination()
@@ -77,7 +77,7 @@ class UserViewSet(djoser_viewset.UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe_or_unsubscribe(self, request, id):
-        author = get_object_or_404(CustomUser, pk=id)
+        author = get_object_or_404(User, pk=id)
         user = request.user
         if request.method == 'POST':
             serializer = SubscriptionSerializer(

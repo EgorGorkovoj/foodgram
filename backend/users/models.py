@@ -2,8 +2,10 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 
+from core.constants import USER_LENGTH, EMAIL_MAX_LENGTH, REGEX_VALID
 
-class CustomUser(AbstractUser):
+
+class User(AbstractUser):
     """Кастомная модель пользователя."""
 
     USERNAME_FIELD = 'email'
@@ -19,7 +21,7 @@ class CustomUser(AbstractUser):
         error_messages={
             'unique': 'Данный адрес электронной почты уже используется!',
         },
-        max_length=254,
+        max_length=EMAIL_MAX_LENGTH,
     )
     username = models.CharField(
         verbose_name='Имя пользователя',
@@ -27,16 +29,16 @@ class CustomUser(AbstractUser):
         error_messages={
             'unique': 'Пользователь с таким именем уже существует!',
         },
-        max_length=150,
-        validators=([RegexValidator(regex=r'^[\w.@+-]+$')])
+        max_length=USER_LENGTH,
+        validators=([RegexValidator(regex=REGEX_VALID)])
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=150,
+        max_length=USER_LENGTH,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=150,
+        max_length=USER_LENGTH,
     )
     avatar = models.ImageField(
         verbose_name='Аватар',
@@ -56,11 +58,11 @@ class CustomUser(AbstractUser):
 class Subscription(models.Model):
     """Класс Subscription."""
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         verbose_name='Подписчик', related_name='follower'
     )
     author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         verbose_name='Отслеживаемый автор рецепта', related_name='following',
     )
 

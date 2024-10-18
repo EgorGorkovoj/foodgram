@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from djoser import serializers as djoser_serializer
 
 from core.serializers import Base64ImageField, ShortRecipeSerializer
-from users.models import CustomUser, Subscription
+from users.models import User, Subscription
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'avatar',
         )
@@ -32,7 +32,7 @@ class UserSerializer(djoser_serializer.UserSerializer):
             'is_subscribed',
             'avatar',
         )
-        model = CustomUser
+        model = User
 
     def get_is_subscribed(self, obj):
         """
@@ -54,7 +54,7 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'id',
             'email',

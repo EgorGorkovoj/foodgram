@@ -10,8 +10,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from api.models import (Tag, Ingredient, Recipe, RecipeIngredient,
-                        Favorites, ShoppingList, ShortLinkRecipe)
+from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
+                            Favorites, ShoppingList, ShortLinkRecipe)
 from api.serializers import (TagSerializer, RecipeSerializer,
                              IngredientSerializer, FavoriteSerializer,
                              ShoppingListSerializer)
@@ -19,8 +19,61 @@ from api.pagination import CustomPagination
 from api.permissions import (IsAuthorOrReadOnlyPermissions,
                              IsAdminOrReadOnlyPermissions)
 from api.filters import RecipeFilter, IngredientFilter
-from core.views import (create_shop_cart,
-                        create_delete_shop_favorites_or_shopping_cart)
+from core.views import create_shop_cart
+
+ERROR_DICT = {
+    'Favorites_post': {'Error': 'Рецепт уже в избранном!'},
+    'Shopping_list_post': {'Error': 'Рецепт уже в списке покупок!'},
+    'Favorites_delete': {'Error': 'Рецепта нет в избранном!'},
+    'Shopping_list_delete': {'Error': 'Рецепта нет в списке покупок!'},
+}
+
+
+def create_delete_shop_favorites_or_shopping_cart(
+        request, pk, model, class_serializer):
+    """
+    Вспомогательная функция для создания и удаления рецептов.
+    Вызывается в методах RecipeViewSet.
+    Параметры функции:
+    1) request - объект запроса, хранящий данные запроса;
+    2) pk - id рецепта из url запроса;
+    3) model - модель, в данной функции FavoFavorites или ShoppingList;
+    4) class_serializer - кастомные сериализаторы.
+    """
+    user = request.user
+    recipe = get_object_or_404(Recipe, pk=pk)
+    if request.method == 'POST':
+        if model.objects.filter(user=user, recipe=recipe).exists():
+            if model.__name__ == 'Favorites':
+                return Response(
+                    ERROR_DICT['Favorites_post'],
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response(
+                ERROR_DICT['Shopping_list_post'],
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = class_serializer(
+            data={'user': user.id, 'recipe': recipe.id}
+        )
+        serializer.is_valid()
+        user = serializer.validated_data.get('user')
+        recipe = serializer.validated_data.get('recipe')
+        model.objects.create(user=user, recipe=recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    favorite_or_shop_list = model.objects.filter(user=user, recipe=recipe)
+    if not favorite_or_shop_list.exists():
+        if model.__name__ == 'Favorites':
+            return Response(
+                ERROR_DICT['Favorites_delete'],
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(
+            ERROR_DICT['Shopping_list_delete'],
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    favorite_or_shop_list.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ModelViewSet):

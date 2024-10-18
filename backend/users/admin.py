@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from users.models import CustomUser, Subscription
+from users.models import User, Subscription
 
 
 class ApiUserAdmin(admin.ModelAdmin):
@@ -31,5 +31,5 @@ class ApiSubscriptionAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email')
 
 
-admin.site.register(CustomUser, ApiUserAdmin)
+admin.site.register(User, ApiUserAdmin)
 admin.site.register(Subscription, ApiSubscriptionAdmin)

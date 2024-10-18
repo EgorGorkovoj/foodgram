@@ -1,14 +1,14 @@
 from django_filters.rest_framework import filters, FilterSet
 
-from api.models import Ingredient, Recipe, Tag
-from users.models import CustomUser
+from recipes.models import Ingredient, Recipe, Tag
+from users.models import User
 
 
 class RecipeFilter(FilterSet):
     """Фильтрация рецептов."""
 
     author = filters.ModelMultipleChoiceFilter(
-        queryset=CustomUser.objects.all(),
+        queryset=User.objects.all(),
         field_name='author__username',
     )
     tags = filters.ModelMultipleChoiceFilter(

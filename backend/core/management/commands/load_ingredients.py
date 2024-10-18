@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 
-from api.models import Ingredient
+from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
@@ -22,8 +22,11 @@ class Command(BaseCommand):
         with open(file_path, 'r', encoding='utf-8') as file:
             try:
                 Ingredient.objects.bulk_create(
-                    Ingredient(name=line[0], measurement_unit=line[1])
-                    for line in csv.reader(file)
+                    Ingredient(
+                        name=line['name'],
+                        measurement_unit=line['measurement_unit']
+                    )
+                    for line in csv.DictReader(file)
                 )
                 self.stdout.write(
                     self.style.SUCCESS('Ингредиенты успешно добавлены!')
